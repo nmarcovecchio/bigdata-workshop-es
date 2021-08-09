@@ -182,8 +182,8 @@ Una vez lanzada la aplicación, podemos ver como se muestra en consola cada 10 s
 Paremos la aplicación, modifica el código para responder la pregunta debajo listada y vuelve a ejecutar para ver los resultados.
 - ¿Cuales son los top 5 `symbol` en cuanto a su precio promedio? Como extra, sería oportuno redondear los decimales a 3.
 
-### Escribiendo a Postgres
-#### `query3 | Postgres Output | Simple insert`
+#### Escribiendo a Postgres
+##### `query3 | Postgres Output | Simple insert`
 Ya que vamos a estar escribiendo datos a postgres, lo primero que haremos previa ejecución de la aplicación es crear la tabla de destino.  
 
 Para esto nos logeamos a postgres con:
@@ -218,7 +218,7 @@ LIMIT 10;
 
 Recuerda para la aplicación con `Ctrl + c` antes de continuar a la siguiente consulta.
 
-#### `query4 | Postgres Output | Average Price Aggregation`
+##### `query4 | Postgres Output | Average Price Aggregation`
 Al igual que la query anterior, procedemos a crear la tabla de destino previa ejecución de la aplicación streaming.  
 
 Si cerraste el tab donde estaba abierto postgres, nos logeamos a postgres con:
@@ -243,10 +243,11 @@ Revise el código de la nueva función y observe las diferencias con el anterior
 Al igual que el punto anterior, una vez lanzada la aplicación puedes ir al tab de postgres y realizar una serie de consultas sobre los nuevos datos.
 
 ¿Qué ve de particular en la fecha de comienzo?
+¿Cómo harías para reemplazar la `udf` con funciones própias de `pyspark`? 
 
 Recuerda para la aplicación con `Ctrl + c` antes de continuar a la siguiente consulta.
 
-#### `query5 | Postgres Output | Average Price Aggregation with Timestamp columns`
+##### `query5 | Postgres Output | Average Price Aggregation with Timestamp columns`
 Tal como hicimos en las últimas 2 secciones, procedemos a crear la tabla donde van a persistirse los nuevos datos.
 
 Si cerraste el tab donde estaba abierto postgres, nos logeamos a postgres con:
