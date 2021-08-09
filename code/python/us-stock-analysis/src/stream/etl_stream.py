@@ -56,10 +56,10 @@ def start_stream(args):
 
     stocks = stocks_json.select("content.*")
 
-    ####################################
-    # Stream to Parquet
-    ####################################
-    query = stocks \
+    #############################################################################
+    # query1 | Parquet Output
+    #############################################################################
+    query1 = stocks \
         .withColumn('year', year(F.col('timestamp'))) \
         .withColumn('month', month(F.col('timestamp'))) \
         .withColumn('day', dayofmonth(F.col('timestamp'))) \
@@ -74,16 +74,22 @@ def start_stream(args):
         .trigger(processingTime='30 seconds') \
         .start()
 
-    query.awaitTermination()
+    query1.awaitTermination(timeout=120)
+    print("Stopping application.")
+    print(
+        "You can start a pyspark shell a run this:\n"
+        "df = spark.read.parquet('/dataset/streaming.parquet')\n"
+        "df.show()"
+    )
+    query1.stop()
 
-
+    #############################################################################
+    # query2 | Console Output | Average Price Aggregation
+    #############################################################################
     # avg_pricing = stocks \
     #     .groupBy(F.col("symbol")) \
     #     .agg(F.avg(F.col("price")).alias("avg_price"))
 
-    ####################################
-    # Console Output
-    ####################################
     # query2 = avg_pricing.writeStream \
     #     .outputMode('complete') \
     #     .format("console") \
@@ -92,41 +98,23 @@ def start_stream(args):
 
     # query2.awaitTermination()
 
-    ####################################
-    # Table in Memory
-    ####################################
-    # query3 = avg_pricing \
-    #     .writeStream \
-    #     .queryName("avgPricing") \
-    #     .outputMode("complete") \
-    #     .format("memory") \
-    #     .trigger(processingTime="10 seconds") \
-    #     .start()
-    #
-    # while True:
-    #     print('\n' + '_' * 30)
-    #     # interactively query in-memory table
-    #     spark.sql('SELECT * FROM avgPricing').show()
-    #     print(query3.lastProgress)
-    #     sleep(10)
-
+    #############################################################################
+    # query3 | Postgres Output | Simple insert
+    #############################################################################
+    # query3 = stream_to_postgres(stocks)
     # query3.awaitTermination()
 
-    ####################################
-    # Writing to Postgres
-    ####################################
+    #############################################################################
+    # query4 | Postgres Output | Average Price Aggregation
+    #############################################################################
+    # query4 = stream_aggregation_to_postgres(stocks)
+    # query4.awaitTermination()
 
-    # Simple insert
-    # query = stream_to_postgres(stocks)
-    # query.awaitTermination()
-
-    # Average Price Aggregation
-    # query = stream_aggregation_to_postgres(stocks)
-    # query.awaitTermination()
-
-    # Final Average Price Aggregation with Timestamp columns
-    # query = stream_aggregation_to_postgres_final(stocks)
-    # query.awaitTermination()
+    #############################################################################
+    # query5 | Postgres Output | Average Price Aggregation with Timestamp columns
+    #############################################################################
+    # query5 = stream_aggregation_to_postgres_final(stocks)
+    # query5.awaitTermination()
 
     pass
 
@@ -134,6 +122,7 @@ def start_stream(args):
 def define_write_to_postgres(table_name):
   
     def write_to_postgres(df, epochId):
+        print(f"Bacth (epochId): {epochId}")
         return (
             df.write
                 .format("jdbc")
