@@ -242,8 +242,8 @@ Revise el código de la nueva función y observe las diferencias con el anterior
 
 Al igual que el punto anterior, una vez lanzada la aplicación puedes ir al tab de postgres y realizar una serie de consultas sobre los nuevos datos.
 
-¿Qué ve de particular en la fecha de comienzo?
-¿Cómo harías para reemplazar la `udf` con funciones própias de `pyspark`? 
+¿Qué ve de particular en la fecha de comienzo?  
+¿Cómo harías para reemplazar la `udf` con funciones própias de `pyspark`?   
 
 Recuerda para la aplicación con `Ctrl + c` antes de continuar a la siguiente consulta.
 
