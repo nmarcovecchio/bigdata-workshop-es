@@ -18,7 +18,6 @@ Al finalizar la instalación clonar el repositorio:
 
 ```shell
 git clone https://github.com/arjones/bigdata-workshop-es.git
-
 cd bigdata-workshop-es
 
 ./control-env.sh start

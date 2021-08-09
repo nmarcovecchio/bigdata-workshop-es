@@ -31,7 +31,7 @@ Correr el script que levanta el ambiente `Usage: control-env.sh (start|stop|clea
 ```bash
 ./control-env.sh start
 
-**IMPORTANTE** el script `control-env.sh cleanup` borra cualquier dado que haya sido procesado anteriormente.
+**IMPORTANTE** el script `control-env.sh cleanup` borra cualquier dato que haya sido procesado anteriormente.
 
 
 # Access Spark-Master and run spark-shell
@@ -58,12 +58,8 @@ Si los jobs mueren (`KILLED`) y no se completan puede ser debido a la memória d
 * [Introducción a Scala](scala/README.md)
 * [Jupyter Notebook (Python / pySpark)](README-pyspark.md)
 
-## Agradecimientos
-* Juan Pampliega ([MuttData](https://www.muttdata.ai/)): expandir y actualizar el ejemplo de [Spark Streaming](README-streaming.md)
-* Pedro Ferrari ([MuttData](https://www.muttdata.ai/)): crear el notebook de [pySpark con Machine Learning](./jupyter/notebook/titanic/)
-
 ## Sobre
-Gustavo Arjones &copy; 2017-2020  
+Gustavo Arjones &copy; 2017-2020
 [arjon.es](https://arjon.es) | [LinkedIn](http://linkedin.com/in/arjones/) | [Twitter](https://twitter.com/arjones)
 
 Mutt Data &copy; 2021-
