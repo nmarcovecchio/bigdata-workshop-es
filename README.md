@@ -1,5 +1,5 @@
 # Workshop de Big Data con Apache Spark [🇪🇸]
-Material del Workshopde Big Data
+Material del Workshop de Big Data
 
 ## Contenidos
 * [Levantar el ambiente](#levantar-ambiente)
@@ -65,3 +65,5 @@ Si los jobs mueren (`KILLED`) y no se completan puede ser debido a la memória d
 ## Sobre
 Gustavo Arjones &copy; 2017-2020  
 [arjon.es](https://arjon.es) | [LinkedIn](http://linkedin.com/in/arjones/) | [Twitter](https://twitter.com/arjones)
+
+Mutt Data &copy; 2021-
