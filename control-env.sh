@@ -2,7 +2,7 @@
 
 function stop {
   echo "Stopping and removing containers"
-  docker-compose --project-name wksp down
+  docker-compose --project-name wksp down --remove-orphans
 }
 
 function cleanup {
@@ -15,6 +15,11 @@ function cleanup {
 function start {
   echo "Starting up"
   docker-compose --project-name wksp up -d
+}
+
+function start-with-superset {
+  echo "Starting up with superset"
+  docker-compose -f docker-compose.yml -f docker-compose-superset.yml --project-name wksp up -d
 }
 
 function update {
@@ -54,6 +59,11 @@ case $1 in
   info
     ;;
 
+  start-with-superset )
+  start-with-superset
+  info
+    ;;
+
   stop )
   stop
     ;;
@@ -84,7 +94,8 @@ case $1 in
     ;;
 
   * )
-  printf "ERROR: Missing command\n  Usage: `basename $0` (start|stop|cleanup|token|logs|update)\n"
+  printf "ERROR: Missing command\n  Usage: `basename $0`
+  (start|start-with-superset|stop|cleanup|token|logs|update)\n"
   exit 1
     ;;
 esac

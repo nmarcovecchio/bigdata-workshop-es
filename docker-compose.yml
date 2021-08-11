@@ -103,27 +103,6 @@ services:
     ports:
       - "5432:5432"
 
-  redis:
-    container_name: redis
-    image: redis
-    restart: always
-
-  superset:
-    container_name: superset
-    image: amancevice/superset
-    restart: always
-    depends_on:
-      - redis
-      - postgres
-    environment:
-      MAPBOX_API_KEY: ${MAPBOX_API_KEY}
-      SUPERSET_HOME: /etc/superset
-    ports:
-      - "8088:8088"
-    volumes:
-      - ./superset/conf/superset_config.py:/etc/superset/superset_config.py
-      - superset:/var/lib/superset
-
   postgres-airflow:
     container_name: postgres-airflow
     image: postgres:11
@@ -156,5 +135,4 @@ services:
 
 volumes:
   postgres-data:
-  superset:
   postgres-airflow-data:
