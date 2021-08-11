@@ -29,6 +29,9 @@ def create_spark_session():
         SparkSession
         .builder
         .appName("Stocks:Stream:ETL")
+        .config("spark.driver.memory", "512m")
+        .config("spark.executor.memory", "512m")
+        .config("spark.sql.shuffle.partitions", "2")
         .getOrCreate()
     )
 

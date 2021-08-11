@@ -105,7 +105,7 @@ Como se puede ver, cada evento tiene asociado un número secuencial único (offs
 
 Podemos consultar una posición cualquiera del log agregando las opciones `-oN` de offset(`-o`), donde `N` es el número secuencial que queremos consultar y `-c1`, para consumir (`-c`) un único (`1`) mensaje.
 
-- ¿Cual fué el primer evento publicado?
+- ¿Cual fue el primer evento publicado?
 - ¿El décimo?
 - ¿Los últimos cinco?
 - Consumamos los 20 primeros eventos de un `symbol` cualquiera (podemos usar `grep` + `head -n20`), ¿se observa alguna discrepancia entre el `Offset` o `Timestamp`* (processing time) y el valor `.timestamp` del `Value` (event time)?
@@ -141,6 +141,7 @@ spark-submit \
   --master 'spark://master:7077' \
   --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.5 \
   --jars /app/postgresql-42.1.4.jar \
+  --total-executor-cores 1 \
   src/stream/etl_stream.py \
   kafka:9092 stocks
 ```
@@ -161,8 +162,9 @@ docker exec -it worker1 bash
 find /dataset/streaming.parquet/year*/*/*/*/minute* -type d | head -n10
 
 # Pyspak session
-pyspark
+pyspark --total-executor-cores 1 --executor-memory 512m --driver-memory 512m
 
+spark.conf.set("spark.sql.shuffle.partitions", "2")
 df = spark.read.parquet("/dataset/streaming.parquet")
 df.show()
 ```
@@ -243,7 +245,7 @@ Revise el código de la nueva función y observe las diferencias con el anterior
 Al igual que el punto anterior, una vez lanzada la aplicación puedes ir al tab de postgres y realizar una serie de consultas sobre los nuevos datos.
 
 ¿Qué ve de particular en la fecha de comienzo?  
-¿Cómo harías para reemplazar la `udf` con funciones própias de `pyspark`?   
+¿Cómo harías para reemplazar la `udf` con funciones propias de `pyspark`?   
 
 Recuerda para la aplicación con `Ctrl + c` antes de continuar a la siguiente consulta.
 
