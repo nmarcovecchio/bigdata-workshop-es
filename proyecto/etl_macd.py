@@ -33,8 +33,12 @@ def send_cryptosignal(producer, signal, topic, ticker, price):
 
 def send_data(producer,df,topic, ticker):
     for index, row in df.iterrows():
+        print(type(row['Datetime']))
+        print(row['Datetime'].to_pydatetime())
+        date = datetime.strptime(str(row['Datetime']), '%Y-%m-%d %H:%M:%S%z')
+        print(date)
         producer.send(topic, {'Ticker':ticker,
-                                'Datetime':str(row['Datetime']),
+                                'Datetime':datetime.strptime(str(row['Datetime']), '%Y-%m-%d %H:%M:%S%z'),
                                 'Close':row['Close'],
                                 'Open':row['Open'],
                                 'High':row['High'],
