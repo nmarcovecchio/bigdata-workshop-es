@@ -25,10 +25,14 @@ docker exec -it kafka bash
   --bootstrap-server kafka:9092 --topic stocks --from-beginning
 '''
 
+def send_cryptosignal(producer, signal, topic, ticker, price):
+    producer.send(topic, {'Ticker':ticker,
+                            'Signal':signal,
+                            'Price':price}
+    )              
+
 def send_data(producer,df,topic, ticker):
     for index, row in df.iterrows():
-        print(row)
-
         producer.send(topic, {'Ticker':ticker,
                                 'Datetime':str(row['Datetime']),
                                 'Close':row['Close'],
@@ -42,6 +46,18 @@ def send_data(producer,df,topic, ticker):
                                 'RSI_14':row['RSI_14']}
         )                   
 
+def analize_signal(df, ticker, producer):
+    print(df)
+    #MACDH<0 La señal 9 se encuentra por debajo.
+    #MACDH>0 Punto de compra.
+    for i in range(len(df)):
+        if(df['MACDh_12_26_9'].iloc[i]>0):
+            send_cryptosignal(producer,'Buy','cryptosignal',ticker, df['Close'].iloc[i])
+                        
+    # RSI > 70 sobrecompra.
+    # RSI > 30 sobreventa
+        if(df['RSI_14'].iloc[i]>70):
+            send_cryptosignal(producer,'Sell','cryptosignal',ticker, df['Close'].iloc[i])
 
 if __name__ == '__main__':
 
@@ -61,34 +77,22 @@ if __name__ == '__main__':
         df.ta.macd(close='close', fast=12, slow=26, signal=9, append=True)
         df.ta.rsi(close='close',timeperiod=14, append=True)
 
-        #Primera vez que entra al loop
+        #Primera vez que entra al loop obtiene las ultimas 24 horas, y genera señales con esta data
         if last_date == None:
-            print(df)
-            #_json = df.reset_index().to_json(orient = 'records')
             last_date = df.index[-1]
             df = df.reset_index()
             send_data(producer,df,'cryptostocks',ticker)
-            #print(_json)
+            analize_signal(df, ticker, producer)
             
-        #Hay nueva data disponible?
+        #Hay nueva data disponible? genera señales en tiempo real.
         else:
             new_data = df.loc[df.index > last_date]
             if (len(new_data)>1):
                 last_date = new_data.index[-1]
-                #print(new_data)
+                print(new_data)
                 new_data = new_data.reset_index()
                 send_data(producer,new_data,'cryptostocks',ticker)
-                #print(_json)
-                #Envio senial insertar en DB.
-                if(new_data['MACDh_12_26_9'].iloc[-1]>0):
-                    print('Compro a '+str(new_data['Close'].iloc[-1]))
-                    #Envio senial de compra.
-                    
-                # > 70 sobrecompra.
-                # > 30 sobreventa
-                if(new_data['RSI_14'].iloc[-1]>70):
-                    print('Vendo a '+str(new_data['Close'].iloc[-1]))
-                    #Envio senial de venta.
+                analize_signal(new_data, ticker, producer)
 
         time.sleep(1)
 

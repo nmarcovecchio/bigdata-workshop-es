@@ -1,4 +1,22 @@
 import sys
+'''
+psql -U workshop
+DROP TABLE IF EXISTS cryptostocks;
+CREATE TABLE cryptostocks (
+  datetime timestamptz NOT NULL,
+  ticker varchar(10) NOT NULL,
+  open double precision	NOT NULL,
+  high double precision	NOT NULL,
+  low double precision	NOT NULL,
+  close double precision	NOT NULL,
+  volume double precision	NOT NULL,
+  MACD_12_26_9 double precision	NOT NULL,
+  MACDh_12_26_9 double precision	NOT NULL,
+  MACDs_12_26_9 double precision	NOT NULL,
+  RSI_14 double precision	NOT NULL,
+  PRIMARY KEY(datetime, ticker)
+);
+'''
 
 import findspark
 findspark.init()
@@ -13,6 +31,42 @@ from pyspark.sql.types import (
     TimestampType,
     IntegerType
 )
+
+def define_write_to_postgres(table_name):
+
+    def write_to_postgres(df, epochId):
+        print(f"Bacth (epochId): {epochId}")
+        return (
+            df.write
+            .format("jdbc")
+            .option("url", "jdbc:postgresql://postgres/workshop")
+            .option("dbtable", f"workshop.{table_name}")
+            .option("user", "workshop")
+            .option("password", "w0rkzh0p")
+            .option("driver", "org.postgresql.Driver")
+            .mode("append")
+            .save()
+        )
+    return write_to_postgres
+
+def stream_to_postgres(stocks, output_table="streaming_inserts"):
+    wstocks = (
+        stocks
+        #.withWatermark("timestamp", "60 seconds")
+        .select("Ticker", "Datetime", "Close","Open", "High", "Volume", "MACD_12_26_9", "MACDh_12_26_9", "MACDs_12_26_9", "RSI_14")
+    )
+
+    write_to_postgres_fn = define_write_to_postgres("streaming_inserts")
+
+    query = (
+        wstocks
+        .writeStream
+        .foreachBatch(write_to_postgres_fn)
+        .outputMode("append")
+        .trigger(processingTime="10 seconds")
+        .start()
+    )
+    return query
 
 def create_spark_session():
     spark = (
@@ -66,6 +120,7 @@ if __name__ == "__main__":
 
     stocks = stocks_json.select("content.*")
 
+    '''
     query2 = (
          stocks
          .writeStream
@@ -74,5 +129,11 @@ if __name__ == "__main__":
          .trigger(processingTime="10 seconds")
          .start()
     )
-
+    
     query2.awaitTermination()
+    '''
+
+    # query3 | Postgres Output | Simple insert
+    #############################################################################
+    query3 = stream_to_postgres(stocks)
+    query3.awaitTermination()
