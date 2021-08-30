@@ -19,14 +19,14 @@ DROP TABLE IF EXISTS cryptostocks;
 CREATE TABLE cryptostocks (
   datetime timestamptz NOT NULL,
   ticker varchar(10) NOT NULL,
-  open double precision	NOT NULL,
-  high double precision	NOT NULL,
-  low double precision	NOT NULL,
-  close double precision	NOT NULL,
-  volume double precision	NOT NULL,
-  MACD_12_26_9 double precision	NOT NULL,
-  MACDh_12_26_9 double precision	NOT NULL,
-  MACDs_12_26_9 double precision	NOT NULL,
-  RSI_14 double precision	NOT NULL,
+  open double precision	,
+  high double precision	,
+  low double precision	,
+  close double precision	,
+  volume double precision	,
+  MACD_12_26_9 double precision	,
+  MACDh_12_26_9 double precision,
+  MACDs_12_26_9 double precision,
+  RSI_14 double precision,
   PRIMARY KEY(datetime, ticker)
 );

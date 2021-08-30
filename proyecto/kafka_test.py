@@ -1,8 +1,58 @@
 from kafka import KafkaConsumer
 import json
+import findspark
+
+'''
+spark-submit   --master 'spark://master:7077'   --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.5 \
+--jars /app/postgresql-42.1.4.jar   --total-executor-cores 1   /proyecto/kafka_test.py
+'''
+
+findspark.add_jars('/app/postgresql-42.1.4.jar')
+findspark.init()
+
+#import spark.implicits._
+
+from pyspark.sql.types import (
+    StringType,
+    DoubleType,
+    StructType,
+    StructField,
+    TimestampType,
+)
+
+
+from pyspark.sql import SparkSession
+spark = (
+    SparkSession.builder
+    .appName("pyspark-Savepostgres")
+    .config("spark.driver.memory", "512m")
+    .config("spark.driver.cores", "1")
+    .config("spark.executor.memory", "512m")
+    .config("spark.executor.cores", "1")
+    .config("spark.sql.shuffle.partitions", "2")
+    .getOrCreate()
+)
+
+
+def write_postgres(df, table_name):
+    (df.write 
+            .format("jdbc")
+            .option("url", "jdbc:postgresql://postgres/workshop")
+            .option("dbtable", f"workshop.{table_name}")
+            .option("user", "workshop")
+            .option("password", "w0rkzh0p")
+            .option("driver", "org.postgresql.Driver")
+            .mode("append")
+            .save())
+
+def generate_df(data):
+    df = spark.createDataFrame(data)
+    return df
 
 consumer = KafkaConsumer('cryptosignal',bootstrap_servers='kafka:9092',
 value_deserializer=lambda m: json.loads(m.decode('utf-8')))
+consumer.poll()
+
 
 estado = 'LIQUIDO'
 precio_compra=0
@@ -16,6 +66,8 @@ for msg in consumer:
         precio_compra = msg['Price']
         estado = 'COMPRADO'
         print('Compro a '+str(precio_compra))
+        df = generate_df([{'ticker':msg['Ticker'], 'result':0.0, 'datetime':msg['Datetime'], 'tipo':'Buy'}])
+        write_postgres(df, 'wallet')
     
     if (msg['Signal']=='Sell' and estado =='COMPRADO'):
         precio_venta = msg['Price']
@@ -25,5 +77,7 @@ for msg in consumer:
         print('Gano' + str(ganancia))
         estado = 'LIQUIDO'
         print(ganancia)
+        df = generate_df([{'ticker':msg['Ticker'], 'result':(precio_venta*100.0/precio_compra), 'datetime':msg['Datetime'], 'tipo':'Sell'}])
+        write_postgres(df, 'wallet')
 
         # SQL SAVE WALLET BUY & SELLS.

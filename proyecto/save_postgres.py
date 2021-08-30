@@ -1,21 +1,7 @@
 import sys
+
 '''
 psql -U workshop
-DROP TABLE IF EXISTS cryptostocks;
-CREATE TABLE cryptostocks (
-  datetime timestamptz NOT NULL,
-  ticker varchar(10) NOT NULL,
-  open double precision	NOT NULL,
-  high double precision	NOT NULL,
-  low double precision	NOT NULL,
-  close double precision	NOT NULL,
-  volume double precision	NOT NULL,
-  MACD_12_26_9 double precision	NOT NULL,
-  MACDh_12_26_9 double precision	NOT NULL,
-  MACDs_12_26_9 double precision	NOT NULL,
-  RSI_14 double precision	NOT NULL,
-  PRIMARY KEY(datetime, ticker)
-);
 '''
 
 import findspark
@@ -44,19 +30,19 @@ def define_write_to_postgres(table_name):
             .option("user", "workshop")
             .option("password", "w0rkzh0p")
             .option("driver", "org.postgresql.Driver")
-            .mode("append")
+            .mode("overwrite")
             .save()
         )
     return write_to_postgres
 
-def stream_to_postgres(stocks, output_table="streaming_inserts"):
+def stream_to_postgres(stocks, output_table="cryptostocks"):
     wstocks = (
         stocks
         #.withWatermark("timestamp", "60 seconds")
         .select("Ticker", "Datetime", "Close","Open", "High", "Volume", "MACD_12_26_9", "MACDh_12_26_9", "MACDs_12_26_9", "RSI_14")
     )
 
-    write_to_postgres_fn = define_write_to_postgres("streaming_inserts")
+    write_to_postgres_fn = define_write_to_postgres("cryptostocks")
 
     query = (
         wstocks
@@ -71,7 +57,7 @@ def stream_to_postgres(stocks, output_table="streaming_inserts"):
 def create_spark_session():
     spark = (
         SparkSession.builder
-        .appName("save_postgres")
+        .appName("Stocks:Save_postgres")
         .config("spark.driver.memory", "512m")
         .config("spark.driver.cores", "1")
         .config("spark.executor.memory", "512m")
@@ -99,8 +85,8 @@ if __name__ == "__main__":
 
     schema = StructType([
         StructField("Ticker", StringType(), False),
-        #StructField("Datetime", TimestampType(), False),
-        StructField("Datetime", StringType(), False),
+        StructField("Datetime", TimestampType(), False),
+        #StructField("Datetime", StringType(), False),
         StructField("Close", DoubleType(), False),
         StructField("Open", DoubleType(), False),
         StructField("High", DoubleType(), False),
@@ -111,29 +97,13 @@ if __name__ == "__main__":
         StructField("RSI_14", DoubleType(), False),
     ])
 
-    json_options = {"timestampFormat": "yyyy-MM-dd'T'HH:mm'Z'"}
+    json_options = {"timestampFormat": "yyyy-MM-dd'T'HH:mm:ss"}
     stocks_json = json.select(
         F.from_json(F.col("value").cast("string"), schema, json_options).alias("content")
     )
 
     stocks_json.printSchema()
-
     stocks = stocks_json.select("content.*")
 
-    '''
-    query2 = (
-         stocks
-         .writeStream
-         .outputMode("append")
-         .format("console")
-         .trigger(processingTime="10 seconds")
-         .start()
-    )
-    
-    query2.awaitTermination()
-    '''
-
-    # query3 | Postgres Output | Simple insert
-    #############################################################################
     query3 = stream_to_postgres(stocks)
     query3.awaitTermination()

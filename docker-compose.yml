@@ -93,12 +93,15 @@ services:
     environment:
       ADVERTISED_HOST: kafka
       ADVERTISED_PORT: 9092
+    volumes:
+      - ./proyecto:/proyecto
 
   postgres:
     container_name: postgres
     image: postgres:11
     restart: always
     volumes:
+      - ./proyecto:/proyecto
       - postgres-data:/var/lib/postgresql/data
       - ./postgres/scripts:/docker-entrypoint-initdb.d
     environment:
