@@ -5,7 +5,7 @@ from datetime import datetime
 
 '''
 spark-submit   --master 'spark://master:7077'   --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.5 \
---jars /app/postgresql-42.1.4.jar   --total-executor-cores 1   /proyecto/kafka_test.py
+--jars /app/postgresql-42.1.4.jar   --total-executor-cores 1   /proyecto/kafka_wallet.py
 '''
 
 findspark.add_jars('/app/postgresql-42.1.4.jar')
