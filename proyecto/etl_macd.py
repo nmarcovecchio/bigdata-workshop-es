@@ -39,17 +39,17 @@ from datetime import datetime
 def send_data(producer,df,topic, ticker):
     for index, row in df.iterrows():
         print((row['Datetime'].isoformat()))
-        producer.send(topic, {'Ticker':ticker,
-                                'Datetime':(row['Datetime'].isoformat())[:-6],
-                                'Close':row['Close'],
-                                'Open':row['Open'],
-                                'High':row['High'],
-                                'Volume':row['Volume'],
-                                'Low':row['Low'],
-                                'MACD_12_26_9':row['MACD_12_26_9'],
-                                'MACDh_12_26_9':row['MACDh_12_26_9'],
-                                'MACDs_12_26_9':row['MACDs_12_26_9'],
-                                'RSI_14':row['RSI_14']}
+        producer.send(topic, {'ticker':ticker,
+                                'datetime':(row['Datetime'].isoformat())[:-6],
+                                'close':row['Close'],
+                                'open':row['Open'],
+                                'high':row['High'],
+                                'volume':row['Volume'],
+                                'low':row['Low'],
+                                'macd_12_26_9':row['MACD_12_26_9'],
+                                'macdh_12_26_9':row['MACDh_12_26_9'],
+                                'macds_12_26_9':row['MACDs_12_26_9'],
+                                'rsi_14':row['RSI_14']}
         )                   
 
 def analize_signal(df, ticker, producer):
@@ -78,8 +78,8 @@ if __name__ == '__main__':
 
     while True:
         #Obtenemos los ultimos precios de las ultimas 24 horas, con un intervalo de 1 minuto
-        ticker = 'BTC-USD'
-        df = yf.Ticker('BTC-USD').history(period='24h',interval='1m')[['Close', 'Open', 'High', 'Volume', 'Low']]#.reset_index()
+        ticker = 'SOL1-USD'
+        df = yf.Ticker(ticker).history(period='24h',interval='1m')[['Close', 'Open', 'High', 'Volume', 'Low']]#.reset_index()
         df.ta.macd(close='close', fast=12, slow=26, signal=9, append=True)
         df.ta.rsi(close='close',timeperiod=14, append=True)
         #df = df.withColumn("Datetime", to_timestamp("Datetime"))

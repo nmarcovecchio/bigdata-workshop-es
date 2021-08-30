@@ -1,6 +1,7 @@
 from kafka import KafkaConsumer
 import json
 import findspark
+from datetime import datetime
 
 '''
 spark-submit   --master 'spark://master:7077'   --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.5 \
@@ -35,6 +36,9 @@ spark = (
 
 
 def write_postgres(df, table_name):
+
+
+
     (df.write 
             .format("jdbc")
             .option("url", "jdbc:postgresql://postgres/workshop")
@@ -46,7 +50,13 @@ def write_postgres(df, table_name):
             .save())
 
 def generate_df(data):
-    df = spark.createDataFrame(data)
+    schema = StructType([
+        StructField("ticker", StringType(), False),
+        StructField("datetime", TimestampType(), False),
+        StructField("result", DoubleType(), False),
+        StructField("tipo", StringType(), False),
+    ])
+    df = spark.createDataFrame(data,schema)
     return df
 
 consumer = KafkaConsumer('cryptosignal',bootstrap_servers='kafka:9092',
@@ -59,17 +69,26 @@ precio_compra=0
 precio_venta=0
 ganancia = 0
 
+wait = 0
 for msg in consumer:
     msg = msg.value
     print(msg)
+    
+    #Por si me llega una señal de compra y venta a la vez.
+    #Compro, y espero por lo menos 2 ciclos mas para ver si vendo.
+    if (wait):
+        wait-=1
+
     if (msg['Signal']=='Buy' and estado =='LIQUIDO'):
+        wait = 2
         precio_compra = msg['Price']
         estado = 'COMPRADO'
         print('Compro a '+str(precio_compra))
-        df = generate_df([{'ticker':msg['Ticker'], 'result':0.0, 'datetime':msg['Datetime'], 'tipo':'Buy'}])
+        date = datetime.strptime(msg['Datetime'], '%Y-%m-%dT%H:%M:%S%z')
+        df = generate_df([{'ticker':msg['Ticker'], 'result':0.0, 'datetime':date, 'tipo':'Buy'}])
         write_postgres(df, 'wallet')
     
-    if (msg['Signal']=='Sell' and estado =='COMPRADO'):
+    if (msg['Signal']=='Sell' and estado =='COMPRADO' and wait==0):
         precio_venta = msg['Price']
         ganancia += precio_venta - precio_compra 
         print('He comprado a  '+str(precio_compra))
@@ -77,7 +96,8 @@ for msg in consumer:
         print('Gano' + str(ganancia))
         estado = 'LIQUIDO'
         print(ganancia)
-        df = generate_df([{'ticker':msg['Ticker'], 'result':(precio_venta*100.0/precio_compra), 'datetime':msg['Datetime'], 'tipo':'Sell'}])
+        date = datetime.strptime(msg['Datetime'], '%Y-%m-%dT%H:%M:%S%z')
+        df = generate_df([{'ticker':msg['Ticker'], 'result':(precio_venta*100.0/precio_compra)-100.0, 'datetime':date, 'tipo':'Sell'}])
         write_postgres(df, 'wallet')
 
         # SQL SAVE WALLET BUY & SELLS.

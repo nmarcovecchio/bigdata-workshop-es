@@ -30,7 +30,7 @@ def define_write_to_postgres(table_name):
             .option("user", "workshop")
             .option("password", "w0rkzh0p")
             .option("driver", "org.postgresql.Driver")
-            .mode("overwrite")
+            .mode("append")
             .save()
         )
     return write_to_postgres
@@ -39,7 +39,7 @@ def stream_to_postgres(stocks, output_table="cryptostocks"):
     wstocks = (
         stocks
         #.withWatermark("timestamp", "60 seconds")
-        .select("Ticker", "Datetime", "Close","Open", "High", "Volume", "MACD_12_26_9", "MACDh_12_26_9", "MACDs_12_26_9", "RSI_14")
+        .select("ticker", "datetime", "close","open", "high", "volume", "macd_12_26_9", "macdh_12_26_9", "macds_12_26_9", "rsi_14")
     )
 
     write_to_postgres_fn = define_write_to_postgres("cryptostocks")
@@ -84,17 +84,17 @@ if __name__ == "__main__":
     json.printSchema()
 
     schema = StructType([
-        StructField("Ticker", StringType(), False),
-        StructField("Datetime", TimestampType(), False),
+        StructField("ticker", StringType(), False),
+        StructField("datetime", TimestampType(), False),
         #StructField("Datetime", StringType(), False),
-        StructField("Close", DoubleType(), False),
-        StructField("Open", DoubleType(), False),
-        StructField("High", DoubleType(), False),
-        StructField("Volume", IntegerType(), False),
-        StructField("MACD_12_26_9", DoubleType(), False),
-        StructField("MACDh_12_26_9", DoubleType(), False),
-        StructField("MACDs_12_26_9", DoubleType(), False),
-        StructField("RSI_14", DoubleType(), False),
+        StructField("close", DoubleType(), False),
+        StructField("open", DoubleType(), False),
+        StructField("high", DoubleType(), False),
+        StructField("volume", IntegerType(), False),
+        StructField("macd_12_26_9", DoubleType(), False),
+        StructField("macdh_12_26_9", DoubleType(), False),
+        StructField("macds_12_26_9", DoubleType(), False),
+        StructField("rsi_14", DoubleType(), False),
     ])
 
     json_options = {"timestampFormat": "yyyy-MM-dd'T'HH:mm:ss"}
